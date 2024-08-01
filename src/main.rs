@@ -1,40 +1,79 @@
 use rand::Rng;
 use std::collections::HashMap;
-
-//
-// Calculate the score for a word. The score is the sum of the points for the letters that make up a word. For example: GUARDIAN = 2 + 1 + 1 + 1 + 2 + 1 + 1 + 1 = 10.
-// Assign seven tiles chosen randomly from the English alphabet to a player's rack.
-// In the real game, tiles are taken at random from a 'bag' containing a fixed number of each tile. Assign seven tiles to a rack using a bag containing the above distribution.
-// Find a valid word formed from the seven tiles. A list of valid words can be found in dictionary.txt.
-// Find the longest valid word that can be formed from the seven tiles.
-// Find the highest scoring word that can be formed.
-// Find the highest scoring word if any one of the letters can score triple.
-// For discussion: how would we adapt our solution for a multiplayer environment?
-
-//number of tiles fixed here
-const NUMBER_OF_TILES: u8 = 7;
+use std::fmt;
 
 static DATA: &'static str = include_str!("data");
+const NUMBER_OF_TILES: u8 = 7; //number of tiles fixed here
+
 fn main() {
-    assert_eq!(score_word("guardian".to_string()), 10);
+    //quick dev tests
+    //assert_eq!(score_word("guardian".to_string()), 10);
+    //let mut player_tiles = vec!['d', 'e', 'c', 'i', 'm', 'a', 'l'];
+    //player_tiles.sort();
 
     let player_tiles = make_a_set_of_random_tiles();
-    //let player_tiles = vec!['a', 'a', 'd', 'g', 'i', 'n', 'r', 'u'];
     println!("The player tiles are {:?}", &player_tiles);
     let subsets = produce_tile_subsets(player_tiles);
-    //do this properly
-    //    tests();
 
     let dictionary = make_dictionary(&DATA);
-    let results_list: Vec<String> = make_results_list(dictionary, subsets);
+    let mut results_list: Vec<String> = make_results_list(dictionary, subsets);
 
-    let mut final_results_list = results_list.iter();
+    if !results_list.is_empty() {
+        let answer = build(&mut results_list);
+        println!("{}", answer);
+    } else {
+        println!("Sorry no results for those letters.");
+    }
+}
 
-    while let Some(result) = final_results_list.next() {
-        println!("{:?}", &result);
+#[derive(Debug)]
+struct Answer {
+    valid_words: Vec<String>,
+    longest_valid_words: Vec<String>,
+    highest_scoring_words: Vec<String>,
+}
+
+impl fmt::Display for Answer {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "highest scoring words: {:#?} \nlongest scoring words {:#?} \nvalid_words {:#?}",
+            self.highest_scoring_words, self.longest_valid_words, self.valid_words
+        )
+    }
+}
+
+fn build(results_list: &mut Vec<String>) -> Answer {
+    if results_list.is_empty() {
+        panic!("Results list is empty and this function shouldn't be called")
+    };
+
+    results_list.sort_by(|a, b| (a.len()).cmp(&b.len()));
+    results_list.reverse();
+
+    let mut longest_words: Vec<String> = Vec::new();
+    let mut highest_words: Vec<String> = Vec::new();
+
+    let longest_word_length = &results_list[0].len();
+
+    for item in results_list.iter() {
+        if item.len() < *longest_word_length {
+            continue;
+        } else {
+            longest_words.push(item.to_string());
+        }
     }
 
-    get_answers(results_list);
+    for item in longest_words.iter() {
+        let score = score_word(item.to_string());
+        highest_words.push(format!("{} = {}", item, score));
+    }
+
+    Answer {
+        valid_words: results_list.to_vec(),
+        longest_valid_words: longest_words,
+        highest_scoring_words: highest_words,
+    }
 }
 
 fn make_a_set_of_random_tiles() -> Vec<char> {
@@ -61,15 +100,13 @@ fn score_word(word: String) -> usize {
             'k' => score += 5,
             'j' | 'x' => score += 8,
             'q' | 'z' => score += 10,
-            _ => println!("missed a case"),
+            _ => println!("missed a case scoring letters"),
         }
     }
     return score;
 }
 
 fn produce_tile_subsets(player_tiles: Vec<char>) -> Vec<String> {
-    //let number_tiles: u8 = player_tiles.len().try_into().unwrap();
-
     let mut subsets: Vec<String> = Vec::new();
 
     for n in 0..1 << NUMBER_OF_TILES {
@@ -87,26 +124,6 @@ fn produce_tile_subsets(player_tiles: Vec<char>) -> Vec<String> {
     subsets.sort();
     subsets
 }
-
-// fn tests() {
-//     assert_eq!(
-//         produce_tile_subsets(vec!['a', 'b', 'c', 'd', 'e', 'f', 'g']),
-//         vec![
-//             "a", "ab", "abc", "abcd", "abcde", "abcdef", "abcdefg", "abcdeg", "abcdf", "abcdfg",
-//             "abcdg", "abce", "abcef", "abcefg", "abceg", "abcf", "abcfg", "abcg", "abd", "abde",
-//             "abdef", "abdefg", "abdeg", "abdf", "abdfg", "abdg", "abe", "abef", "abefg", "abeg",
-//             "abf", "abfg", "abg", "ac", "acd", "acde", "acdef", "acdefg", "acdeg", "acdf", "acdfg",
-//             "acdg", "ace", "acef", "acefg", "aceg", "acf", "acfg", "acg", "ad", "ade", "adef",
-//             "adefg", "adeg", "adf", "adfg", "adg", "ae", "aef", "aefg", "aeg", "af", "afg", "ag",
-//             "b", "bc", "bcd", "bcde", "bcdef", "bcdefg", "bcdeg", "bcdf", "bcdfg", "bcdg", "bce",
-//             "bcef", "bcefg", "bceg", "bcf", "bcfg", "bcg", "bd", "bde", "bdef", "bdefg", "bdeg",
-//             "bdf", "bdfg", "bdg", "be", "bef", "befg", "beg", "bf", "bfg", "bg", "c", "cd", "cde",
-//             "cdef", "cdefg", "cdeg", "cdf", "cdfg", "cdg", "ce", "cef", "cefg", "ceg", "cf", "cfg",
-//             "cg", "d", "de", "def", "defg", "deg", "df", "dfg", "dg", "e", "ef", "efg", "eg", "f",
-//             "fg", "g"
-//         ]
-//     );
-// }
 
 fn make_dictionary(lines: &'static str) -> HashMap<String, String> {
     let mut dictionary: HashMap<String, String> = HashMap::new();
@@ -132,21 +149,22 @@ fn make_results_list(dictionary: HashMap<String, String>, subsets: Vec<String>) 
     results_list
 }
 
-fn get_answers(results_list: Vec<String>) {
-    let mut answer: Vec<(usize, &str)> = Vec::new();
-    for result in results_list.iter() {
-        if !results_list.is_empty() {
-            answer.push((score_word(result.to_string()), result));
-        } else {
-            println!("Results list is empty");
-            answer.push((0, "0"));
-        }
-    }
-    answer.sort();
-    if answer.is_empty() {
-        println!("There is no scoring word");
-    } else {
-        println!("Top scoring word {:?}", answer.pop().unwrap());
-    }
-}
-
+// fn tests() {
+//     assert_eq!(
+//         produce_tile_subsets(vec!['a', 'b', 'c', 'd', 'e', 'f', 'g']),
+//         vec![
+//             "a", "ab", "abc", "abcd", "abcde", "abcdef", "abcdefg", "abcdeg", "abcdf", "abcdfg",
+//             "abcdg", "abce", "abcef", "abcefg", "abceg", "abcf", "abcfg", "abcg", "abd", "abde",
+//             "abdef", "abdefg", "abdeg", "abdf", "abdfg", "abdg", "abe", "abef", "abefg", "abeg",
+//             "abf", "abfg", "abg", "ac", "acd", "acde", "acdef", "acdefg", "acdeg", "acdf", "acdfg",
+//             "acdg", "ace", "acef", "acefg", "aceg", "acf", "acfg", "acg", "ad", "ade", "adef",
+//             "adefg", "adeg", "adf", "adfg", "adg", "ae", "aef", "aefg", "aeg", "af", "afg", "ag",
+//             "b", "bc", "bcd", "bcde", "bcdef", "bcdefg", "bcdeg", "bcdf", "bcdfg", "bcdg", "bce",
+//             "bcef", "bcefg", "bceg", "bcf", "bcfg", "bcg", "bd", "bde", "bdef", "bdefg", "bdeg",
+//             "bdf", "bdfg", "bdg", "be", "bef", "befg", "beg", "bf", "bfg", "bg", "c", "cd", "cde",
+//             "cdef", "cdefg", "cdeg", "cdf", "cdfg", "cdg", "ce", "cef", "cefg", "ceg", "cf", "cfg",
+//             "cg", "d", "de", "def", "defg", "deg", "df", "dfg", "dg", "e", "ef", "efg", "eg", "f",
+//             "fg", "g"
+//         ]
+//     );
+// }
