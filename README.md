@@ -9,6 +9,7 @@ I'm trying to learn rust...
 Example ouput: 
 
 The player tiles are ['d', 'j', 'k', 'l', 'o', 'r', 'r']
+
 highest scoring words: [
     "dork = 9",
     "lord = 5",
@@ -44,7 +45,9 @@ highest scoring words: [
 4) fix stuff the test shows fails
 5) add the triple letter feature:
 Find the highest scoring word if any one of the letters can score triple.
-6) Maybe modularise the functions into a lib.rs project structure
+6) maybe modularise the functions into a lib.rs project structure
+7) pull out and make a little tool to check if substring is a permutation contained in a larger string:
+that could be useful on its own. e.g. "bat" is a valid substring permutation from "abstract"
 
 **Extension ideas**
 1) make a basic CLI app using clap that I could use to beat friends/computer at Scrabble:
@@ -56,7 +59,7 @@ an idea I had but wasn't sure how to implement that may make it faster
 5) try to populate and search an Sqlite or Postgres db
 6) make the actual scrabble game...
  
- **install from terminal**
+ **Install from terminal**
 ```bash
 git clone git@github.com:leshec/scrabble.git
 cargo run
