@@ -14,11 +14,13 @@ highest scoring words: [
     "lord = 5",
     "dorr = 5",
 ]
+
  longest scoring words [
     "dork",
     "lord",
     "dorr",
 ]
+
  valid_words [
     "dork",
     "lord",
